@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로또 번호 생성기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+        .lotto-ball {
+            display: inline-block;
+            margin: 5px;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .num1-10 { background-color: #fbc400; }
+        .num11-20 { background-color: #69c8f2; }
+        .num21-30 { background-color: #ff7272; }
+        .num31-40 { background-color: #aaa; }
+        .num41-45 { background-color: #b0d840; }
+        .input-group {
+            margin-top: 20px;
+        }
+        select:disabled, input:disabled {
+            background-color: #e9ecef;
+        }
+
+        #generateButton {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group label, .input-group input, .input-group select {
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        .input-group input[type="checkbox"] {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <h1>로또 번호 생성기</h1>
+    <div class="input-group">
+        <input type="checkbox" id="includeCheck">
+        <label for="includeNumbers">포함할 번호 (쉼표로 구분):</label>
+        <input type="text" id="includeNumbers" placeholder="예: 1, 12, 24" disabled>
+    </div>
+    <div class="input-group">
+        <input type="checkbox" id="excludeCheck">
+        <label for="excludeNumbers">제외할 번호 (쉼표로 구분):</label>
+        <input type="text" id="excludeNumbers" placeholder="예: 5, 9, 23" disabled>
+    </div>
+    <div class="input-group">
+        <input type="checkbox" id="oddEvenCheck">
+        <label for="oddCount">홀수 개수:</label>
+        <select id="oddCount" disabled>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <input type="checkbox" id="primeCheck">
+        <label for="primeCount">소수 개수:</label>
+        <select id="primeCount" disabled>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <input type="checkbox" id="smallGroupCheck">
+        <label for="smallGroupCount">작은 그룹에서 뽑을 번호의 개수 (1-22):</label>
+        <select id="smallGroupCount" disabled>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <input type="checkbox" id="largeGroupCheck">
+        <label for="smallGroupCount">큰 그룹에서 뽑을 번호의 개수 (23-45):</label>
+        <select id="smallGroupCount" disabled>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+    <button id="generateButton">번호 생성</button>
+    <div id="numbersDisplay"></div>
+    
+    <script>
+        function toggleInput(checkboxId, inputId) {
+            const checkbox = document.getElementById(checkboxId);
+            const input = document.getElementById(inputId);
+            input.disabled = !checkbox.checked;
+        }
+
+        document.getElementById('includeCheck').addEventListener('change', () => toggleInput('includeCheck', 'includeNumbers'));
+        document.getElementById('excludeCheck').addEventListener('change', () => toggleInput('excludeCheck', 'excludeNumbers'));
+        document.getElementById('oddEvenCheck').addEventListener('change', () => toggleInput('oddEvenCheck', 'oddCount'));
+        document.getElementById('primeCheck').addEventListener('change', () => toggleInput('primeCheck', 'primeCount'));
+        document.getElementById('smallGroupCheck').addEventListener('change', () => toggleInput('smallGroupCheck', 'smallGroupCount'));
+        document.getElementById('largeGroupCheck').addEventListener('change', () => toggleInput('largeGroupCheck', 'largeGroupCount'));
+
+
+        function isPrime(num) {
+            if (num <= 1) return false;
+            for (let i = 2, s = Math.sqrt(num); i <= s; i++) {
+                if (num % i === 0) return false;
+            }
+            return true;
+        }
+
+        function generateLottoNumbers() {
+            const includeCheck = document.getElementById('includeCheck').checked;
+            const excludeCheck = document.getElementById('excludeCheck').checked;
+            const oddEvenCheck = document.getElementById('oddEvenCheck').checked;
+            const primeCheck = document.getElementById('primeCheck').checked;
+            const smallGroupCheck = document.getElementById('smallGroupCheck').checked;
+            const largeGroupCheck = document.getElementById('largeGroupCheck').checked;
+
+            const inputIncludeNumbers = includeCheck ? document.getElementById('includeNumbers').value.split(',').map(num => parseInt(num.trim())).filter(num => !isNaN(num) && num >= 1 && num <= 45) : [];
+            const inputExcludeNumbers = excludeCheck ? document.getElementById('excludeNumbers').value.split(',').map(num => parseInt(num.trim())).filter(num => !isNaN(num) && num >= 1 && num <= 45) : [];
+            const oddCount = oddEvenCheck ? parseInt(document.getElementById('oddCount').value) : null;
+            const primeCount = primeCheck ? parseInt(document.getElementById('primeCount').value) : null;
+            const smallGroupCount = smallGroupCheck ? parseInt(document.getElementById('smallGroupCount').value) : null;
+            const largeGroupCount = largeGroupCheck ? parseInt(document.getElementById('largeGroupCount').value) : null;
+
+            let lottoNumbers = [...new Set(inputIncludeNumbers)]; // 중복 제거 및 포함할 번호 추가
+            let possibleNumbers = Array.from({length: 45}, (_, i) => i + 1).filter(num => !inputExcludeNumbers.includes(num));
+
+            let primeNumbers = possibleNumbers.filter(num => isPrime(num));
+            let nonPrimeNumbers = possibleNumbers.filter(num => !isPrime(num));
+
+            let smallGroupNumbers = Array.from({length: 22}, (_, i) => i + 1);
+            let largeGroupNumbers = Array.from({length: 23}, (_, i) => i + 23);
+
+            // 소수 조건 적용
+            if (primeCheck && primeCount > 0) {
+                while (lottoNumbers.filter(num => isPrime(num)).length < primeCount && primeNumbers.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * primeNumbers.length);
+                    const selectedPrime = primeNumbers.splice(randomIndex, 1)[0];
+                    if (!lottoNumbers.includes(selectedPrime)) {
+                        lottoNumbers.push(selectedPrime);
+                    }
+                }
+            }
+            // '작은 그룹'과 '큰 그룹'에서 지정된 개수만큼 번호를 뽑는 로직 추가
+            if (smallGroupCheck && smallGroupCount > 0) {
+                while (lottoNumbers.filter(num => num <= 22).length < smallGroupCount && smallGroupNumbers.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * smallGroupNumbers.length);
+                    const selectedNumber = smallGroupNumbers.splice(randomIndex, 1)[0];
+                    if (!lottoNumbers.includes(selectedNumber)) {
+                        lottoNumbers.push(selectedNumber);
+                    }
+                }
+            }
+            if (largeGroupCheck && largeGroupCount > 0) {
+                while (lottoNumbers.filter(num => num >= 23).length < largeGroupCount && largeGroupNumbers.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * largeGroupNumbers.length);
+                    const selectedNumber = largeGroupNumbers.splice(randomIndex, 1)[0];
+                    if (!lottoNumbers.includes(selectedNumber)) {
+                        lottoNumbers.push(selectedNumber);
+                    }
+                }
+            }
+
+            // 번호 생성 로직
+            while (lottoNumbers.length < 6) {
+                let number = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
+                if (!lottoNumbers.includes(number)) {
+                    lottoNumbers.push(number);
+                }
+            }
+
+            lottoNumbers.sort((a, b) => a - b);
+            return lottoNumbers;
+        }
+
+        function displayLottoNumbers(numbers) {
+            const displayArea = document.getElementById('numbersDisplay');
+            displayArea.innerHTML = ''; // Clear previous numbers
+            numbers.forEach(number => {
+                const ball = document.createElement('span');
+                ball.textContent = number;
+                ball.className = `lotto-ball ${getBallColor(number)}`;
+                displayArea.appendChild(ball);
+            });
+        }
+
+        function getBallColor(number) {
+            if (number <= 10) return 'num1-10';
+            else if (number <= 20) return 'num11-20';
+            else if (number <= 30) return 'num21-30';
+            else if (number <= 40) return 'num31-40';
+            else return 'num41-45';
+        }
+
+        document.getElementById('generateButton').addEventListener('click', function() {
+            let numbers = generateLottoNumbers();
+            displayLottoNumbers(numbers);
+        });
+    </script>
+</body>
+</html>
